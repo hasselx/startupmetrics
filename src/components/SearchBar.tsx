@@ -1,33 +1,38 @@
 import { Search, X } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { sampleMetrics } from '@/data/metrics';
+import { useSearchMetrics } from '@/hooks/useMetrics';
+import { categories } from '@/lib/metrics';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface SearchBarProps {
   autoFocus?: boolean;
   onSearch?: (query: string) => void;
 }
 
-const SearchBar = ({ autoFocus = false, onSearch }: SearchBarProps) => {
+export interface SearchBarRef {
+  focus: () => void;
+}
+
+const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false, onSearch }, ref) => {
   const [query, setQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+
+  const { data: searchResults, isLoading } = useSearchMetrics(query);
+
+  useImperativeHandle(ref, () => ({
+    focus: () => {
+      inputRef.current?.focus();
+    }
+  }));
 
   useEffect(() => {
     if (autoFocus && inputRef.current) {
       inputRef.current.focus();
     }
   }, [autoFocus]);
-
-  const suggestions = query.length > 0
-    ? sampleMetrics
-        .filter(m => 
-          m.title.toLowerCase().includes(query.toLowerCase()) ||
-          m.slug.toLowerCase().includes(query.toLowerCase())
-        )
-        .slice(0, 6)
-    : [];
 
   const handleSelect = (slug: string) => {
     setQuery('');
@@ -39,10 +44,12 @@ const SearchBar = ({ autoFocus = false, onSearch }: SearchBarProps) => {
     e.preventDefault();
     if (onSearch) {
       onSearch(query);
-    } else if (suggestions.length > 0) {
-      handleSelect(suggestions[0].slug);
+    } else if (searchResults && searchResults.length > 0) {
+      handleSelect(searchResults[0].slug);
     }
   };
+
+  const showDropdown = showSuggestions && query.length >= 2;
 
   return (
     <div className="relative">
@@ -74,27 +81,59 @@ const SearchBar = ({ autoFocus = false, onSearch }: SearchBarProps) => {
         </div>
       </form>
 
-      {showSuggestions && suggestions.length > 0 && (
+      {showDropdown && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-card rounded-xl shadow-elevated border border-border overflow-hidden z-50 animate-scale-in">
-          {suggestions.map((metric) => (
-            <button
-              key={metric.id}
-              onClick={() => handleSelect(metric.slug)}
-              className="w-full px-4 py-3 text-left hover:bg-secondary/50 transition-colors flex items-center gap-3 tap-highlight-none"
-            >
-              <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center text-sm">
-                📊
-              </div>
-              <div>
-                <p className="font-medium text-sm">{metric.title}</p>
-                <p className="text-xs text-muted-foreground capitalize">{metric.category}</p>
-              </div>
-            </button>
-          ))}
+          {isLoading ? (
+            <div className="p-3 space-y-2">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <Skeleton className="w-8 h-8 rounded-lg" />
+                  <div className="flex-1">
+                    <Skeleton className="h-4 w-32 mb-1" />
+                    <Skeleton className="h-3 w-20" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : searchResults && searchResults.length > 0 ? (
+            searchResults.slice(0, 6).map((metric) => {
+              const category = categories.find(c => c.id === metric.category);
+              return (
+                <button
+                  key={metric.id}
+                  onClick={() => handleSelect(metric.slug)}
+                  className="w-full px-4 py-3 text-left hover:bg-secondary/50 transition-colors flex items-center gap-3 tap-highlight-none"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center text-sm">
+                    {category?.icon || '📊'}
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">{metric.title}</p>
+                    <p className="text-xs text-muted-foreground capitalize">{category?.name || metric.category}</p>
+                  </div>
+                </button>
+              );
+            })
+          ) : (
+            <div className="p-4 text-center">
+              <p className="text-sm text-muted-foreground mb-2">No results found</p>
+              <button
+                onClick={() => {
+                  setShowSuggestions(false);
+                  navigate(`/search?q=${encodeURIComponent(query)}`);
+                }}
+                className="text-sm text-primary font-medium"
+              >
+                Generate with AI →
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
   );
-};
+});
+
+SearchBar.displayName = 'SearchBar';
 
 export default SearchBar;
