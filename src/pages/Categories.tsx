@@ -1,31 +1,56 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import AppShell from '@/components/AppShell';
 import Header from '@/components/Header';
 import CategoryPieChart from '@/components/CategoryPieChart';
 import { categories } from '@/lib/metrics';
 import { useCategoryCounts } from '@/hooks/useMetrics';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, PieChart } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const Categories = () => {
   const navigate = useNavigate();
+  const [showChart, setShowChart] = useState(false);
   const { data: counts, isLoading } = useCategoryCounts();
 
   return (
     <AppShell>
-      <Header title="Categories" />
+      <Header 
+        title="Categories" 
+        rightElement={
+          <button
+            onClick={() => setShowChart(!showChart)}
+            className={`p-2 rounded-xl transition-colors tap-highlight-none ${
+              showChart ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary text-muted-foreground'
+            }`}
+          >
+            <PieChart size={20} />
+          </button>
+        }
+      />
       <div className="px-4 py-4 space-y-6">
-        {/* Pie Chart Section */}
-        <div className="animate-fade-in">
-          {isLoading ? (
-            <div className="bg-card rounded-2xl p-4 border border-border/50">
-              <Skeleton className="h-4 w-24 mb-4" />
-              <Skeleton className="h-48 w-full rounded-xl" />
-            </div>
-          ) : (
-            <CategoryPieChart counts={counts || {}} />
+        {/* Pie Chart Section - Collapsible */}
+        <AnimatePresence>
+          {showChart && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
+              className="overflow-hidden"
+            >
+              {isLoading ? (
+                <div className="bg-card rounded-2xl p-4 border border-border/50">
+                  <Skeleton className="h-4 w-24 mb-4" />
+                  <Skeleton className="h-48 w-full rounded-xl" />
+                </div>
+              ) : (
+                <CategoryPieChart counts={counts || {}} />
+              )}
+            </motion.div>
           )}
-        </div>
+        </AnimatePresence>
 
         {/* Category List */}
         <div>
