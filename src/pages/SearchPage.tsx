@@ -29,10 +29,13 @@ const SearchPage = () => {
       }
       
       // No exact match - generate new metric
-      const { metric, generated, error } = await generateMetric(query);
+      const { metric, generated, error, requiresAuth } = await generateMetric(query);
       
       if (error) {
         toast.error(error);
+        if (requiresAuth) {
+          navigate('/auth');
+        }
         return;
       }
       

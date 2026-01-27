@@ -112,7 +112,7 @@ export async function findExactMetricByTitle(title: string): Promise<Metric | nu
 }
 
 // Generate a new metric using AI
-export async function generateMetric(query: string): Promise<{ metric: Metric | null; generated: boolean; error?: string }> {
+export async function generateMetric(query: string): Promise<{ metric: Metric | null; generated: boolean; error?: string; requiresAuth?: boolean }> {
   try {
     const { data, error } = await supabase.functions.invoke('generate-metric', {
       body: { query },
@@ -120,7 +120,13 @@ export async function generateMetric(query: string): Promise<{ metric: Metric | 
 
     if (error) {
       console.error('Error generating metric:', error);
-      return { metric: null, generated: false, error: error.message };
+      const status = (error as any)?.context?.status ?? (error as any)?.status;
+      const body = (error as any)?.context?.body;
+      const bodyError = typeof body === 'object' && body && 'error' in body ? (body as any).error : undefined;
+      if (status === 401) {
+        return { metric: null, generated: false, requiresAuth: true, error: 'Please sign in to generate metrics.' };
+      }
+      return { metric: null, generated: false, error: bodyError ?? error.message };
     }
 
     if (data.error) {
