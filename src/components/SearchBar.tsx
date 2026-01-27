@@ -1,4 +1,4 @@
-import { Search, X, Sparkles, Loader2 } from 'lucide-react';
+import { Search, X, Loader2 } from 'lucide-react';
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSearchMetrics, useInvalidateMetrics } from '@/hooks/useMetrics';
@@ -19,6 +19,7 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
   const [query, setQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generatingQuery, setGeneratingQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const invalidateMetrics = useInvalidateMetrics();
@@ -36,6 +37,63 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
       inputRef.current.focus();
     }
   }, [autoFocus]);
+
+  // Auto-generate when no results found
+  useEffect(() => {
+    const shouldAutoGenerate = 
+      query.length >= 2 && 
+      !isLoading && 
+      searchResults && 
+      searchResults.length === 0 && 
+      !isGenerating &&
+      query !== generatingQuery;
+
+    if (shouldAutoGenerate) {
+      handleAutoGenerate();
+    }
+  }, [query, isLoading, searchResults, isGenerating, generatingQuery]);
+
+  const handleAutoGenerate = async () => {
+    if (query.length < 2) return;
+    
+    setIsGenerating(true);
+    setGeneratingQuery(query);
+    
+    try {
+      // First check for exact title match
+      const existingMetric = await findExactMetricByTitle(query);
+      if (existingMetric) {
+        setQuery('');
+        setShowSuggestions(false);
+        navigate(`/metric/${existingMetric.slug}`);
+        return;
+      }
+      
+      // No exact match - generate new metric
+      const { metric, generated, error, requiresAuth } = await generateMetric(query);
+      if (error) {
+        toast.error(error);
+        if (requiresAuth) {
+          setShowSuggestions(false);
+          navigate('/auth');
+        }
+        return;
+      }
+      if (metric) {
+        if (generated) {
+          toast.success(`Generated: ${metric.title}`);
+        }
+        invalidateMetrics();
+        setQuery('');
+        setShowSuggestions(false);
+        navigate(`/metric/${metric.slug}`);
+      }
+    } catch (err) {
+      toast.error('Failed to generate metric');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const handleSelect = (slug: string) => {
     setQuery('');
@@ -86,17 +144,25 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
 
       {showDropdown && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-card rounded-xl shadow-elevated border border-border overflow-hidden z-50 animate-scale-in">
-          {isLoading ? (
-            <div className="p-3 space-y-2">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <Skeleton className="w-8 h-8 rounded-lg" />
-                  <div className="flex-1">
-                    <Skeleton className="h-4 w-32 mb-1" />
-                    <Skeleton className="h-3 w-20" />
+          {isLoading || isGenerating ? (
+            <div className="p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <Loader2 size={18} className="animate-spin text-primary" />
+                <span className="text-sm text-muted-foreground">
+                  {isGenerating ? `Generating "${query}"...` : 'Searching...'}
+                </span>
+              </div>
+              <div className="space-y-2">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <Skeleton className="w-8 h-8 rounded-lg" />
+                    <div className="flex-1">
+                      <Skeleton className="h-4 w-32 mb-1" />
+                      <Skeleton className="h-3 w-20" />
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           ) : searchResults && searchResults.length > 0 ? (
             searchResults.slice(0, 6).map((metric) => {
@@ -117,65 +183,7 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
                 </button>
               );
             })
-          ) : (
-          <div className="p-4 text-center">
-              <p className="text-sm text-muted-foreground mb-2">No exact match found</p>
-              <button
-                onClick={async () => {
-                  if (isGenerating || query.length < 2) return;
-                  setIsGenerating(true);
-                  try {
-                    // First check for exact title match
-                    const existingMetric = await findExactMetricByTitle(query);
-                    if (existingMetric) {
-                      setQuery('');
-                      setShowSuggestions(false);
-                      navigate(`/metric/${existingMetric.slug}`);
-                      return;
-                    }
-                    
-                    // No exact match - generate new metric
-                    const { metric, generated, error, requiresAuth } = await generateMetric(query);
-                    if (error) {
-                      toast.error(error);
-                      if (requiresAuth) {
-                        setShowSuggestions(false);
-                        navigate('/auth');
-                      }
-                      return;
-                    }
-                    if (metric) {
-                      if (generated) {
-                        toast.success(`Generated: ${metric.title}`);
-                      }
-                      invalidateMetrics();
-                      setQuery('');
-                      setShowSuggestions(false);
-                      navigate(`/metric/${metric.slug}`);
-                    }
-                  } catch (err) {
-                    toast.error('Failed to generate metric');
-                  } finally {
-                    setIsGenerating(false);
-                  }
-                }}
-                disabled={isGenerating}
-                className="inline-flex items-center gap-2 text-sm text-primary font-medium disabled:opacity-50"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 size={14} className="animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles size={14} />
-                    Generate "{query}" with AI
-                  </>
-                )}
-              </button>
-            </div>
-          )}
+          ) : null}
         </div>
       )}
     </div>
