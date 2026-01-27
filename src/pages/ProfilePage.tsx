@@ -17,7 +17,7 @@ interface Profile {
 }
 
 const ProfilePage = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [displayName, setDisplayName] = useState('');
@@ -26,6 +26,9 @@ const ProfilePage = () => {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    // Wait for auth to finish loading before checking user
+    if (authLoading) return;
+    
     if (!user) {
       navigate('/auth');
       return;
@@ -47,7 +50,19 @@ const ProfilePage = () => {
     };
 
     fetchProfile();
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
+
+  // Show loading while auth is being checked
+  if (authLoading) {
+    return (
+      <AppShell>
+        <Header title="Profile" showBack onBack={() => navigate('/settings')} />
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </AppShell>
+    );
+  }
 
   const handleSave = async () => {
     if (!user) return;
