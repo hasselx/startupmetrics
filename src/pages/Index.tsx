@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useRef } from 'react';
-import { TrendingUp, Sparkles, ArrowRight } from 'lucide-react';
+import { Sparkles, ArrowRight } from 'lucide-react';
+import BookIcon from '@/components/BookIcon';
 import AppShell from '@/components/AppShell';
 import SearchBar from '@/components/SearchBar';
 import CategoryChip from '@/components/CategoryChip';
@@ -31,7 +32,7 @@ const Index = () => {
         <div className={`mb-8 animate-fade-in ${!isMobile ? 'text-center max-w-2xl mx-auto pt-8' : ''}`}>
           <div className={`flex items-center gap-2 mb-3 ${!isMobile ? 'justify-center' : ''}`}>
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-primary" />
+              <BookIcon size={20} className="text-primary" />
             </div>
             <span className="text-xs font-medium text-primary uppercase tracking-wider">
               Startup Metrics

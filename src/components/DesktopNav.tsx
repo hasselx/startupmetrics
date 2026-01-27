@@ -1,4 +1,5 @@
-import { Home, Grid3X3, Search, Bookmark, Settings, TrendingUp, LogIn, UserPlus } from 'lucide-react';
+import { Home, Grid3X3, Search, Bookmark, Settings, LogIn, UserPlus } from 'lucide-react';
+import BookIcon from '@/components/BookIcon';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -36,7 +37,7 @@ const DesktopNav = () => {
             className="flex items-center gap-2 text-foreground hover:text-primary transition-colors"
           >
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <TrendingUp className="w-4 h-4 text-primary" />
+              <BookIcon size={16} className="text-primary" />
             </div>
             <span className="font-semibold text-lg">Startup Metrics</span>
           </button>
