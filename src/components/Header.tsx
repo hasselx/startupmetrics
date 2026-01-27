@@ -4,11 +4,20 @@ import { useNavigate } from 'react-router-dom';
 interface HeaderProps {
   title?: string;
   showBack?: boolean;
+  onBack?: () => void;
   rightElement?: React.ReactNode;
 }
 
-const Header = ({ title, showBack = false, rightElement }: HeaderProps) => {
+const Header = ({ title, showBack = false, onBack, rightElement }: HeaderProps) => {
   const navigate = useNavigate();
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      navigate(-1);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border/50">
@@ -16,7 +25,7 @@ const Header = ({ title, showBack = false, rightElement }: HeaderProps) => {
         <div className="flex items-center gap-3 flex-1">
           {showBack && (
             <button
-              onClick={() => navigate(-1)}
+              onClick={handleBack}
               className="p-2 -ml-2 rounded-xl hover:bg-secondary transition-colors tap-highlight-none"
             >
               <ArrowLeft size={22} />
