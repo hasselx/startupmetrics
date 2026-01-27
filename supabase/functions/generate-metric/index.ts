@@ -106,11 +106,19 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are a startup metrics expert. Generate comprehensive, accurate metric definitions for startup and SaaS businesses. Always provide practical examples with real numbers.`,
+            content: `You are a startup metrics expert. Generate comprehensive, accurate metric definitions for startup and SaaS businesses. Always provide practical examples with real numbers.
+
+IMPORTANT RULES:
+1. The metric title MUST be based on the user's query - use their exact term or a closely related official metric name
+2. If the query is a common metric name (e.g., "MRR", "CAC", "LTV"), use the official full name
+3. If the query is a concept (e.g., "benchmark", "efficiency"), create a metric specifically about that concept
+4. NEVER generate an unrelated metric - the title must directly relate to the user's query`,
           },
           {
             role: "user",
-            content: `Generate a complete metric entry for: "${query}"`,
+            content: `Generate a complete startup metric entry for: "${query}"
+
+The metric title MUST contain or directly relate to "${query}". Do not generate a generic or unrelated metric.`,
           },
         ],
         tools: [
