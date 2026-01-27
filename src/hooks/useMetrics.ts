@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { fetchMetrics, fetchMetricsByCategory, fetchMetricBySlug, searchMetrics, getCategoryCounts, Metric } from '@/lib/metrics';
+import { fetchMetrics, fetchMetricsByCategory, fetchMetricBySlug, searchMetrics, findExactMetricByTitle, getCategoryCounts, Metric } from '@/lib/metrics';
 
 export function useMetrics() {
   return useQuery({
@@ -30,6 +30,15 @@ export function useSearchMetrics(query: string) {
     queryKey: ['metrics', 'search', query],
     queryFn: () => searchMetrics(query),
     enabled: query.length >= 2,
+    staleTime: 1000 * 60 * 2,
+  });
+}
+
+export function useExactMetricMatch(title: string) {
+  return useQuery({
+    queryKey: ['metrics', 'exact', title],
+    queryFn: () => findExactMetricByTitle(title),
+    enabled: title.length >= 2,
     staleTime: 1000 * 60 * 2,
   });
 }

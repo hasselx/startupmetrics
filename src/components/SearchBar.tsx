@@ -2,7 +2,7 @@ import { Search, X, Sparkles, Loader2 } from 'lucide-react';
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSearchMetrics, useInvalidateMetrics } from '@/hooks/useMetrics';
-import { categories, generateMetric } from '@/lib/metrics';
+import { categories, generateMetric, findExactMetricByTitle } from '@/lib/metrics';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 
@@ -119,12 +119,22 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
             })
           ) : (
           <div className="p-4 text-center">
-              <p className="text-sm text-muted-foreground mb-2">No results found</p>
+              <p className="text-sm text-muted-foreground mb-2">No exact match found</p>
               <button
                 onClick={async () => {
                   if (isGenerating || query.length < 2) return;
                   setIsGenerating(true);
                   try {
+                    // First check for exact title match
+                    const existingMetric = await findExactMetricByTitle(query);
+                    if (existingMetric) {
+                      setQuery('');
+                      setShowSuggestions(false);
+                      navigate(`/metric/${existingMetric.slug}`);
+                      return;
+                    }
+                    
+                    // No exact match - generate new metric
                     const { metric, generated, error } = await generateMetric(query);
                     if (error) {
                       toast.error(error);
