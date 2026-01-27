@@ -224,10 +224,13 @@ serve(async (req) => {
       }
     }
 
+    // Generate slug from AI-generated title (not user query) for consistency
+    const titleSlug = metricData.title.toLowerCase().trim().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+
     // Create the metric object
     const newMetric = {
       title: metricData.title,
-      slug: slug,
+      slug: titleSlug,
       category: metricData.category || "financial",
       definition: metricData.definition,
       formula: metricData.formula,
@@ -255,7 +258,7 @@ serve(async (req) => {
         const { data: existing } = await supabase
           .from("metrics")
           .select("*")
-          .eq("slug", slug)
+          .eq("slug", titleSlug)
           .single();
         if (existing) {
           return new Response(
