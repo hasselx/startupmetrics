@@ -46,6 +46,21 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
   // Show generate option when we have results but no exact match
   const showGenerateOption = query.length >= 2 && !isLoading && searchResults && searchResults.length > 0 && !hasExactMatch;
 
+  // Auto-generate when no results found at all
+  useEffect(() => {
+    const shouldAutoGenerate = 
+      query.length >= 2 && 
+      !isLoading && 
+      searchResults && 
+      searchResults.length === 0 && 
+      !isGenerating &&
+      query !== generatingQuery;
+
+    if (shouldAutoGenerate) {
+      handleAutoGenerate();
+    }
+  }, [query, isLoading, searchResults, isGenerating, generatingQuery]);
+
   const handleAutoGenerate = async () => {
     if (query.length < 2) return;
     
