@@ -1,4 +1,4 @@
-import { Search, X, Loader2 } from 'lucide-react';
+import { Search, X, Loader2, Sparkles } from 'lucide-react';
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSearchMetrics, useInvalidateMetrics } from '@/hooks/useMetrics';
@@ -38,20 +38,13 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
     }
   }, [autoFocus]);
 
-  // Auto-generate when no results found
-  useEffect(() => {
-    const shouldAutoGenerate = 
-      query.length >= 2 && 
-      !isLoading && 
-      searchResults && 
-      searchResults.length === 0 && 
-      !isGenerating &&
-      query !== generatingQuery;
+  // Check if exact match exists in results
+  const hasExactMatch = searchResults?.some(
+    (m) => m.title.toLowerCase() === query.toLowerCase()
+  );
 
-    if (shouldAutoGenerate) {
-      handleAutoGenerate();
-    }
-  }, [query, isLoading, searchResults, isGenerating, generatingQuery]);
+  // Show generate option when we have results but no exact match
+  const showGenerateOption = query.length >= 2 && !isLoading && searchResults && searchResults.length > 0 && !hasExactMatch;
 
   const handleAutoGenerate = async () => {
     if (query.length < 2) return;
@@ -164,26 +157,54 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
                 ))}
               </div>
             </div>
-          ) : searchResults && searchResults.length > 0 ? (
-            searchResults.slice(0, 6).map((metric) => {
-              const category = categories.find(c => c.id === metric.category);
-              return (
+          ) : (
+            <>
+              {/* Generate option when no exact match */}
+              {showGenerateOption && (
                 <button
-                  key={metric.id}
-                  onClick={() => handleSelect(metric.slug)}
-                  className="w-full px-4 py-3 text-left hover:bg-secondary/50 transition-colors flex items-center gap-3 tap-highlight-none"
+                  onClick={handleAutoGenerate}
+                  className="w-full px-4 py-3 text-left hover:bg-primary/10 transition-colors flex items-center gap-3 tap-highlight-none border-b border-border bg-accent/30"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center text-sm">
-                    {category?.icon || '📊'}
+                  <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                    <Sparkles size={16} className="text-primary" />
                   </div>
                   <div>
-                    <p className="font-medium text-sm">{metric.title}</p>
-                    <p className="text-xs text-muted-foreground capitalize">{category?.name || metric.category}</p>
+                    <p className="font-medium text-sm text-primary">Generate "{query}"</p>
+                    <p className="text-xs text-muted-foreground">Create new metric with AI</p>
                   </div>
                 </button>
-              );
-            })
-          ) : null}
+              )}
+              
+              {/* Similar results */}
+              {searchResults && searchResults.length > 0 && (
+                <>
+                  {showGenerateOption && (
+                    <div className="px-4 py-2 text-xs text-muted-foreground bg-muted/30">
+                      Similar metrics
+                    </div>
+                  )}
+                  {searchResults.slice(0, 6).map((metric) => {
+                    const category = categories.find(c => c.id === metric.category);
+                    return (
+                      <button
+                        key={metric.id}
+                        onClick={() => handleSelect(metric.slug)}
+                        className="w-full px-4 py-3 text-left hover:bg-secondary/50 transition-colors flex items-center gap-3 tap-highlight-none"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center text-sm">
+                          {category?.icon || '📊'}
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{metric.title}</p>
+                          <p className="text-xs text-muted-foreground capitalize">{category?.name || metric.category}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </>
+              )}
+            </>
+          )}
         </div>
       )}
     </div>
