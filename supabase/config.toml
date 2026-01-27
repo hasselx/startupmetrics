@@ -1,1 +1,4 @@
 project_id = "ncbcfpgbccxsvuweykxe"
+
+[functions.generate-metric]
+verify_jwt = false

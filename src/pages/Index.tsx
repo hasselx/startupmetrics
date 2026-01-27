@@ -3,11 +3,14 @@ import AppShell from '@/components/AppShell';
 import SearchBar from '@/components/SearchBar';
 import CategoryChip from '@/components/CategoryChip';
 import MetricCard from '@/components/MetricCard';
-import { categories, sampleMetrics } from '@/data/metrics';
+import { categories } from '@/lib/metrics';
+import { useMetrics } from '@/hooks/useMetrics';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const Index = () => {
   const navigate = useNavigate();
-  const recentMetrics = sampleMetrics.slice(0, 4);
+  const { data: metrics, isLoading } = useMetrics();
+  const recentMetrics = (metrics || []).slice(0, 4);
 
   return (
     <AppShell>
@@ -44,7 +47,7 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Recent Metrics */}
+        {/* Popular Metrics */}
         <div className="animate-fade-in" style={{ animationDelay: '150ms' }}>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
@@ -57,17 +60,30 @@ const Index = () => {
               See all
             </button>
           </div>
-          <div className="space-y-3">
-            {recentMetrics.map((metric, index) => (
-              <div 
-                key={metric.id} 
-                className="animate-slide-up"
-                style={{ animationDelay: `${200 + index * 50}ms` }}
-              >
-                <MetricCard metric={metric} />
-              </div>
-            ))}
-          </div>
+          
+          {isLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="metric-card">
+                  <Skeleton className="h-4 w-20 mb-2" />
+                  <Skeleton className="h-5 w-48 mb-2" />
+                  <Skeleton className="h-4 w-full" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {recentMetrics.map((metric, index) => (
+                <div 
+                  key={metric.id} 
+                  className="animate-slide-up"
+                  style={{ animationDelay: `${200 + index * 50}ms` }}
+                >
+                  <MetricCard metric={metric} />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </AppShell>

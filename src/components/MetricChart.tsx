@@ -1,30 +1,23 @@
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell } from 'recharts';
-import { Metric } from '@/data/metrics';
+import { Metric } from '@/lib/metrics';
 
 interface MetricChartProps {
   metric: Metric;
 }
 
 const MetricChart = ({ metric }: MetricChartProps) => {
-  const data = metric.visualizationData.labels.map((label, index) => ({
+  const data = metric.visualization_data.labels.map((label, index) => ({
     name: label,
-    value: metric.visualizationData.values[index],
+    value: metric.visualization_data.values[index],
   }));
 
   const primaryColor = 'hsl(168, 80%, 32%)';
-  const gradientId = `gradient-${metric.id}`;
 
-  if (metric.visualizationType === 'line') {
+  if (metric.visualization_type === 'line') {
     return (
       <div className="h-40 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
-            <defs>
-              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={primaryColor} stopOpacity={0.2} />
-                <stop offset="95%" stopColor={primaryColor} stopOpacity={0} />
-              </linearGradient>
-            </defs>
             <XAxis 
               dataKey="name" 
               axisLine={false} 
@@ -61,7 +54,7 @@ const MetricChart = ({ metric }: MetricChartProps) => {
     );
   }
 
-  if (metric.visualizationType === 'bar' || metric.visualizationType === 'funnel') {
+  if (metric.visualization_type === 'bar' || metric.visualization_type === 'funnel') {
     return (
       <div className="h-40 w-full">
         <ResponsiveContainer width="100%" height="100%">
@@ -96,7 +89,7 @@ const MetricChart = ({ metric }: MetricChartProps) => {
                 <Cell 
                   key={`cell-${index}`} 
                   fill={primaryColor} 
-                  opacity={metric.visualizationType === 'funnel' ? 1 - (index * 0.15) : 0.85}
+                  opacity={metric.visualization_type === 'funnel' ? 1 - (index * 0.15) : 0.85}
                 />
               ))}
             </Bar>

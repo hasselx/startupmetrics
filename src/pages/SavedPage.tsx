@@ -1,18 +1,30 @@
 import AppShell from '@/components/AppShell';
 import Header from '@/components/Header';
 import MetricCard from '@/components/MetricCard';
-import { sampleMetrics } from '@/data/metrics';
+import { useMetrics } from '@/hooks/useMetrics';
 import { useSavedMetrics } from '@/hooks/useSavedMetrics';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const SavedPage = () => {
   const { savedIds } = useSavedMetrics();
-  const savedMetrics = sampleMetrics.filter(m => savedIds.includes(m.id));
+  const { data: allMetrics, isLoading } = useMetrics();
+  const savedMetrics = (allMetrics || []).filter(m => savedIds.includes(m.id));
 
   return (
     <AppShell>
       <Header title="Saved" />
       <div className="px-4 py-4">
-        {savedMetrics.length > 0 ? (
+        {isLoading ? (
+          <div className="space-y-3">
+            {[1, 2].map((i) => (
+              <div key={i} className="metric-card">
+                <Skeleton className="h-4 w-20 mb-2" />
+                <Skeleton className="h-5 w-48 mb-2" />
+                <Skeleton className="h-4 w-full" />
+              </div>
+            ))}
+          </div>
+        ) : savedMetrics.length > 0 ? (
           <div className="space-y-3">
             {savedMetrics.map((metric, index) => (
               <div 

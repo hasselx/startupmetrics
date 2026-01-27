@@ -1,15 +1,14 @@
 import { useNavigate } from 'react-router-dom';
 import AppShell from '@/components/AppShell';
 import Header from '@/components/Header';
-import { categories, sampleMetrics } from '@/data/metrics';
+import { categories } from '@/lib/metrics';
+import { useCategoryCounts } from '@/hooks/useMetrics';
 import { ChevronRight } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const Categories = () => {
   const navigate = useNavigate();
-
-  const getCategoryCount = (categoryId: string) => {
-    return sampleMetrics.filter(m => m.category === categoryId).length;
-  };
+  const { data: counts, isLoading } = useCategoryCounts();
 
   return (
     <AppShell>
@@ -32,9 +31,13 @@ const Categories = () => {
                     <h3 className="font-semibold text-foreground">
                       {category.name}
                     </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {getCategoryCount(category.id)} metrics
-                    </p>
+                    {isLoading ? (
+                      <Skeleton className="h-4 w-16 mt-1" />
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        {counts?.[category.id] || 0} metrics
+                      </p>
+                    )}
                   </div>
                 </div>
                 <ChevronRight 
