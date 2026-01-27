@@ -1,6 +1,7 @@
 import AppShell from '@/components/AppShell';
 import Header from '@/components/Header';
-import { ChevronRight, Info, FileText, Share2, Mail } from 'lucide-react';
+import { ChevronRight, Info, FileText, Share2, Mail, LogOut, ExternalLink } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const settingsItems = [
   { icon: Info, label: 'About', description: 'Learn more about SML' },
@@ -49,10 +50,31 @@ const SettingsPage = () => {
         </div>
 
         {/* Footer */}
-        <div className="text-center py-8 mt-6">
-          <p className="text-xs text-muted-foreground">
-            Made with ❤️ for founders
+        <div className="text-center py-8 mt-6 space-y-4">
+          <p className="text-sm text-muted-foreground italic">
+            SML v1.0.0
           </p>
+          <a 
+            href="https://www.heypage.online/hasselx?referrer=sml&type=redirect" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+          >
+            Built by @hasselx
+            <ExternalLink size={14} />
+          </a>
+          <div className="pt-2">
+            <Button 
+              variant="outline" 
+              className="rounded-full px-8"
+              onClick={() => {
+                // Sign out logic placeholder
+              }}
+            >
+              <LogOut size={18} />
+              Sign Out
+            </Button>
+          </div>
         </div>
       </div>
     </AppShell>
