@@ -6,7 +6,7 @@ import Header from '@/components/Header';
 import SearchBar from '@/components/SearchBar';
 import MetricCard from '@/components/MetricCard';
 import { useSearchMetrics, useInvalidateMetrics } from '@/hooks/useMetrics';
-import { generateMetric } from '@/lib/metrics';
+import { generateMetric, findExactMetricByTitle } from '@/lib/metrics';
 import { toast } from 'sonner';
 
 const SearchPage = () => {
@@ -21,6 +21,14 @@ const SearchPage = () => {
     
     setIsGenerating(true);
     try {
+      // First check for exact title match
+      const existingMetric = await findExactMetricByTitle(query);
+      if (existingMetric) {
+        navigate(`/metric/${existingMetric.slug}`);
+        return;
+      }
+      
+      // No exact match - generate new metric
       const { metric, generated, error } = await generateMetric(query);
       
       if (error) {
@@ -92,7 +100,7 @@ const SearchPage = () => {
             <div className="w-16 h-16 rounded-full bg-accent flex items-center justify-center mx-auto mb-4">
               <Sparkles className="text-primary" size={28} />
             </div>
-            <h3 className="font-semibold text-foreground mb-1">No results found</h3>
+            <h3 className="font-semibold text-foreground mb-1">No exact match found</h3>
             <p className="text-sm text-muted-foreground mb-6">
               Would you like to generate this metric using AI?
             </p>

@@ -78,12 +78,12 @@ export async function fetchMetricBySlug(slug: string): Promise<Metric | null> {
   return data ? mapDbMetric(data) : null;
 }
 
-// Search metrics
+// Search metrics - only match on title
 export async function searchMetrics(query: string): Promise<Metric[]> {
   const { data, error } = await supabase
     .from('metrics')
     .select('*')
-    .or(`title.ilike.%${query}%,definition.ilike.%${query}%,category.ilike.%${query}%`)
+    .ilike('title', `%${query}%`)
     .order('title')
     .limit(20);
 
@@ -93,6 +93,22 @@ export async function searchMetrics(query: string): Promise<Metric[]> {
   }
 
   return (data || []).map(mapDbMetric);
+}
+
+// Check for exact title match
+export async function findExactMetricByTitle(title: string): Promise<Metric | null> {
+  const { data, error } = await supabase
+    .from('metrics')
+    .select('*')
+    .ilike('title', title)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Error finding exact metric:', error);
+    return null;
+  }
+
+  return data ? mapDbMetric(data) : null;
 }
 
 // Generate a new metric using AI
