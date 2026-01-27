@@ -1,10 +1,15 @@
-import { Home, Grid3X3, Search, Bookmark, Settings, TrendingUp } from 'lucide-react';
+import { Home, Grid3X3, Search, Bookmark, Settings, TrendingUp, LogIn, UserPlus } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
 
-const navItems = [
+const publicNavItems = [
   { id: 'home', icon: Home, label: 'Home', path: '/' },
   { id: 'categories', icon: Grid3X3, label: 'Categories', path: '/categories' },
   { id: 'search', icon: Search, label: 'Search', path: '/search' },
+];
+
+const authNavItems = [
   { id: 'saved', icon: Bookmark, label: 'Saved', path: '/saved' },
   { id: 'settings', icon: Settings, label: 'Settings', path: '/settings' },
 ];
@@ -12,11 +17,14 @@ const navItems = [
 const DesktopNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
     return location.pathname.startsWith(path);
   };
+
+  const navItems = user ? [...publicNavItems, ...authNavItems] : publicNavItems;
 
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-lg border-b border-border">
@@ -54,6 +62,29 @@ const DesktopNav = () => {
                 </button>
               );
             })}
+
+            {/* Auth Buttons - Show when logged out */}
+            {!loading && !user && (
+              <div className="flex items-center gap-2 ml-4 pl-4 border-l border-border">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate('/auth?mode=signin')}
+                  className="gap-2"
+                >
+                  <LogIn size={16} />
+                  Sign In
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => navigate('/auth?mode=signup')}
+                  className="gap-2"
+                >
+                  <UserPlus size={16} />
+                  Sign Up
+                </Button>
+              </div>
+            )}
           </nav>
         </div>
       </div>
