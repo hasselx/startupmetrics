@@ -1,42 +1,80 @@
 import { useNavigate } from 'react-router-dom';
+import { TrendingUp, Sparkles, ArrowRight } from 'lucide-react';
 import AppShell from '@/components/AppShell';
 import SearchBar from '@/components/SearchBar';
 import CategoryChip from '@/components/CategoryChip';
 import MetricCard from '@/components/MetricCard';
 import { categories } from '@/lib/metrics';
-import { useMetrics } from '@/hooks/useMetrics';
+import { useMetrics, useCategoryCounts } from '@/hooks/useMetrics';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 
 const Index = () => {
   const navigate = useNavigate();
   const { data: metrics, isLoading } = useMetrics();
-  const recentMetrics = (metrics || []).slice(0, 4);
+  const { data: categoryCounts } = useCategoryCounts();
+  const recentMetrics = (metrics || []).slice(0, 3);
+  const totalMetrics = metrics?.length || 0;
 
   return (
     <AppShell>
-      <div className="px-4 pt-6 pb-4">
-        {/* App Header */}
-        <div className="mb-6 animate-fade-in">
-          <h1 className="text-2xl font-bold text-foreground mb-1">
-            Startup Metrics
+      <div className="px-4 pt-8 pb-4">
+        {/* Hero Section */}
+        <div className="mb-8 animate-fade-in">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-primary" />
+            </div>
+            <span className="text-xs font-medium text-primary uppercase tracking-wider">
+              Startup Metrics
+            </span>
+          </div>
+          <h1 className="text-3xl font-bold text-foreground mb-2 leading-tight">
+            Master your startup metrics
           </h1>
-          <p className="text-muted-foreground">
-            Your library of SaaS & startup metrics
+          <p className="text-muted-foreground leading-relaxed">
+            Understand, calculate, and track the KPIs that matter for SaaS growth.
           </p>
         </div>
 
         {/* Search */}
-        <div className="mb-6 animate-fade-in" style={{ animationDelay: '50ms' }}>
+        <div className="mb-8 animate-fade-in" style={{ animationDelay: '50ms' }}>
           <SearchBar />
         </div>
 
+        {/* Stats Row */}
+        <div className="grid grid-cols-3 gap-3 mb-8 animate-fade-in" style={{ animationDelay: '75ms' }}>
+          <div className="bg-card rounded-xl p-3 border border-border/50">
+            <p className="text-2xl font-bold text-foreground">{totalMetrics}</p>
+            <p className="text-xs text-muted-foreground">Metrics</p>
+          </div>
+          <div className="bg-card rounded-xl p-3 border border-border/50">
+            <p className="text-2xl font-bold text-foreground">{categories.length}</p>
+            <p className="text-xs text-muted-foreground">Categories</p>
+          </div>
+          <div className="bg-card rounded-xl p-3 border border-border/50 flex flex-col justify-center">
+            <div className="flex items-center gap-1">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <p className="text-xs font-medium text-primary">AI-Powered</p>
+            </div>
+          </div>
+        </div>
+
         {/* Categories */}
-        <div className="mb-6 animate-fade-in" style={{ animationDelay: '100ms' }}>
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-            Categories
-          </h2>
+        <div className="mb-8 animate-fade-in" style={{ animationDelay: '100ms' }}>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+              Browse by Category
+            </h2>
+            <button 
+              onClick={() => navigate('/categories')}
+              className="text-sm font-medium text-primary tap-highlight-none flex items-center gap-1"
+            >
+              All <ArrowRight className="w-3 h-3" />
+            </button>
+          </div>
           <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4 pb-2">
-            {categories.map((category) => (
+            {categories.slice(0, 6).map((category) => (
               <CategoryChip
                 key={category.id}
                 name={category.name}
@@ -47,7 +85,7 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Popular Metrics */}
+        {/* Recent Metrics */}
         <div className="animate-fade-in" style={{ animationDelay: '150ms' }}>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
@@ -55,15 +93,15 @@ const Index = () => {
             </h2>
             <button 
               onClick={() => navigate('/categories')}
-              className="text-sm font-medium text-primary tap-highlight-none"
+              className="text-sm font-medium text-primary tap-highlight-none flex items-center gap-1"
             >
-              See all
+              See all <ArrowRight className="w-3 h-3" />
             </button>
           </div>
           
           {isLoading ? (
             <div className="space-y-3">
-              {[1, 2, 3, 4].map((i) => (
+              {[1, 2, 3].map((i) => (
                 <div key={i} className="metric-card">
                   <Skeleton className="h-4 w-20 mb-2" />
                   <Skeleton className="h-5 w-48 mb-2" />
@@ -84,6 +122,16 @@ const Index = () => {
               ))}
             </div>
           )}
+
+          {/* CTA Button */}
+          <Button 
+            onClick={() => navigate('/search')}
+            className="w-full mt-6"
+            variant="outline"
+          >
+            <Sparkles className="w-4 h-4 mr-2" />
+            Search or generate any metric
+          </Button>
         </div>
       </div>
     </AppShell>
