@@ -108,7 +108,16 @@ const SettingsPage = () => {
     <AppShell>
       <Header title="Settings" />
       <div className="px-4 py-4">
-        {/* Profile Section */}
+        {/* App Info */}
+        <div className="text-center py-6 mb-6 animate-fade-in">
+          <div className="w-20 h-20 rounded-3xl bg-primary flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <span className="text-4xl">📊</span>
+          </div>
+          <h2 className="text-xl font-bold text-foreground">Startup Metrics Library</h2>
+          <p className="text-sm text-muted-foreground mt-1">Version 1.0.0</p>
+        </div>
+
+        {/* Profile Section - Now below app icon */}
         {user && (
           <button
             onClick={() => navigate('/profile')}
@@ -131,15 +140,6 @@ const SettingsPage = () => {
             </div>
           </button>
         )}
-
-        {/* App Info */}
-        <div className="text-center py-6 mb-6 animate-fade-in">
-          <div className="w-20 h-20 rounded-3xl bg-primary flex items-center justify-center mx-auto mb-4 shadow-lg">
-            <span className="text-4xl">📊</span>
-          </div>
-          <h2 className="text-xl font-bold text-foreground">Startup Metrics Library</h2>
-          <p className="text-sm text-muted-foreground mt-1">Version 1.0.0</p>
-        </div>
 
         {/* Settings List */}
         <div className="space-y-2">
@@ -235,12 +235,12 @@ const SettingsPage = () => {
                   <h4 className="font-semibold text-foreground mb-2">Timeline</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-3">
-                      <span className="w-16 font-medium text-primary">2024</span>
-                      <span>Startup Metrics Library launched</span>
+                      <span className="w-16 font-medium text-primary">2025</span>
+                      <span>Idea conceptualized</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="w-16 font-medium text-primary">2025</span>
-                      <span>Expanded with new categories & features</span>
+                      <span className="w-16 font-medium text-primary">2026</span>
+                      <span>Web app launched</span>
                     </div>
                   </div>
                 </div>
@@ -254,39 +254,6 @@ const SettingsPage = () => {
                     <li>Save & organize your favorite metrics</li>
                     <li>Search across all categories</li>
                   </ul>
-                </div>
-
-                {/* Contact */}
-                <div>
-                  <h4 className="font-semibold text-foreground mb-2">Get in Touch</h4>
-                  <p className="text-sm mb-3">We'd love to hear from you. Send us a message!</p>
-                  <div className="p-4 rounded-xl bg-secondary/50 border border-border">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Mail className="w-5 h-5 text-primary" />
-                      <span className="font-medium text-foreground">Email</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-3">Send us an email and we'll respond as soon as possible.</p>
-                    <div className="flex items-center gap-2">
-                      <a 
-                        href="https://mail.google.com/mail/u/0/?fs=1&to=ihasselx@gmail.com&tf=cm"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground py-2.5 px-4 rounded-lg font-medium text-center transition-colors"
-                      >
-                        Send Email
-                      </a>
-                      <button 
-                        onClick={() => {
-                          navigator.clipboard.writeText('ihasselx@gmail.com');
-                          toast.success('Email copied to clipboard!');
-                        }}
-                        className="p-2.5 rounded-lg bg-secondary hover:bg-secondary/80 border border-border transition-colors"
-                      >
-                        <Copy className="w-5 h-5" />
-                      </button>
-                    </div>
-                    <p className="text-sm text-primary mt-2">ihasselx@gmail.com</p>
-                  </div>
                 </div>
 
                 <div className="pt-2 text-center">
@@ -332,28 +299,46 @@ const SettingsPage = () => {
       <Dialog open={contactOpen} onOpenChange={setContactOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Contact Us</DialogTitle>
+            <DialogTitle>Contact</DialogTitle>
             <DialogDescription asChild>
               <div className="space-y-4 pt-4">
                 <p>We'd love to hear from you! Reach out with any questions, feedback, or suggestions.</p>
-                <div className="space-y-3">
-                  <a 
-                    href="mailto:contact@sml.app"
-                    className="flex items-center gap-3 p-3 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
-                  >
+                <div className="p-4 rounded-xl bg-secondary/50 border border-border">
+                  <div className="flex items-center gap-2 mb-2">
                     <Mail className="w-5 h-5 text-primary" />
-                    <span className="text-foreground">contact@sml.app</span>
-                  </a>
-                  <a 
-                    href="https://www.heypage.online/hasselx?referrer=sml&type=redirect"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
-                  >
-                    <ExternalLink className="w-5 h-5 text-primary" />
-                    <span className="text-foreground">@hasselx on HeyPage</span>
-                  </a>
+                    <span className="font-medium text-foreground">Email</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3">Send us an email and we'll respond as soon as possible.</p>
+                  <div className="flex items-center gap-2">
+                    <a 
+                      href="https://mail.google.com/mail/u/0/?fs=1&to=ihasselx@gmail.com&tf=cm"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground py-2.5 px-4 rounded-lg font-medium text-center transition-colors"
+                    >
+                      Send Email
+                    </a>
+                    <button 
+                      onClick={() => {
+                        navigator.clipboard.writeText('ihasselx@gmail.com');
+                        toast.success('Email copied to clipboard!');
+                      }}
+                      className="p-2.5 rounded-lg bg-secondary hover:bg-secondary/80 border border-border transition-colors"
+                    >
+                      <Copy className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <p className="text-sm text-primary mt-2">ihasselx@gmail.com</p>
                 </div>
+                <a 
+                  href="https://www.heypage.online/hasselx?referrer=sml&type=redirect"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-3 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
+                >
+                  <ExternalLink className="w-5 h-5 text-primary" />
+                  <span className="text-foreground">@hasselx on HeyPage</span>
+                </a>
               </div>
             </DialogDescription>
           </DialogHeader>
