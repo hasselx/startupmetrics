@@ -5,6 +5,7 @@ import AppShell from '@/components/AppShell';
 import SearchBar from '@/components/SearchBar';
 import CategoryChip from '@/components/CategoryChip';
 import MetricCard from '@/components/MetricCard';
+import QuotesCarousel from '@/components/QuotesCarousel';
 import { categories } from '@/lib/metrics';
 import { useMetrics, useCategoryCounts } from '@/hooks/useMetrics';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -138,6 +139,14 @@ const Index = () => {
             <Sparkles className="w-4 h-4" />
             Search or generate any metric
           </button>
+        </div>
+
+        {/* Quotes Carousel */}
+        <div className={`mt-10 animate-fade-in ${!isMobile ? 'max-w-2xl mx-auto' : ''}`} style={{ animationDelay: '250ms' }}>
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+            Words of Wisdom
+          </h2>
+          <QuotesCarousel />
         </div>
       </div>
     </AppShell>
