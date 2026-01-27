@@ -2,12 +2,14 @@ import { useParams } from 'react-router-dom';
 import AppShell from '@/components/AppShell';
 import Header from '@/components/Header';
 import MetricCard from '@/components/MetricCard';
-import { categories, sampleMetrics } from '@/data/metrics';
+import { categories } from '@/lib/metrics';
+import { useMetricsByCategory } from '@/hooks/useMetrics';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const CategoryDetail = () => {
   const { categoryId } = useParams();
   const category = categories.find(c => c.id === categoryId);
-  const metrics = sampleMetrics.filter(m => m.category === categoryId);
+  const { data: metrics, isLoading } = useMetricsByCategory(categoryId || '');
 
   if (!category) {
     return (
@@ -32,13 +34,23 @@ const CategoryDetail = () => {
           <div>
             <h1 className="text-xl font-bold">{category.name}</h1>
             <p className="text-sm text-muted-foreground">
-              {metrics.length} metric{metrics.length !== 1 ? 's' : ''}
+              {isLoading ? '...' : `${metrics?.length || 0} metric${(metrics?.length || 0) !== 1 ? 's' : ''}`}
             </p>
           </div>
         </div>
 
         {/* Metrics List */}
-        {metrics.length > 0 ? (
+        {isLoading ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="metric-card">
+                <Skeleton className="h-4 w-20 mb-2" />
+                <Skeleton className="h-5 w-48 mb-2" />
+                <Skeleton className="h-4 w-full" />
+              </div>
+            ))}
+          </div>
+        ) : metrics && metrics.length > 0 ? (
           <div className="space-y-3">
             {metrics.map((metric, index) => (
               <div 

@@ -4,12 +4,14 @@ import { useState } from 'react';
 import AppShell from '@/components/AppShell';
 import Header from '@/components/Header';
 import MetricChart from '@/components/MetricChart';
-import { sampleMetrics, categories } from '@/data/metrics';
+import { categories } from '@/lib/metrics';
+import { useMetric } from '@/hooks/useMetrics';
 import { useSavedMetrics } from '@/hooks/useSavedMetrics';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const MetricDetail = () => {
   const { slug } = useParams();
-  const metric = sampleMetrics.find(m => m.slug === slug);
+  const { data: metric, isLoading } = useMetric(slug || '');
   const category = metric ? categories.find(c => c.id === metric.category) : null;
   const [copied, setCopied] = useState(false);
   const { isSaved, toggleSave } = useSavedMetrics();
@@ -21,6 +23,30 @@ const MetricDetail = () => {
       setTimeout(() => setCopied(false), 2000);
     }
   };
+
+  if (isLoading) {
+    return (
+      <AppShell>
+        <Header showBack />
+        <div className="px-4 py-4 space-y-4">
+          <Skeleton className="h-6 w-24" />
+          <Skeleton className="h-8 w-64" />
+          <div className="section-card">
+            <Skeleton className="h-4 w-20 mb-2" />
+            <Skeleton className="h-16 w-full" />
+          </div>
+          <div className="section-card">
+            <Skeleton className="h-4 w-20 mb-2" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+          <div className="section-card">
+            <Skeleton className="h-4 w-20 mb-2" />
+            <Skeleton className="h-40 w-full" />
+          </div>
+        </div>
+      </AppShell>
+    );
+  }
 
   if (!metric) {
     return (
@@ -57,8 +83,8 @@ const MetricDetail = () => {
         {/* Title Section */}
         <div className="animate-fade-in">
           <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent text-accent-foreground text-sm font-medium mb-3">
-            <span>{category?.icon}</span>
-            <span>{category?.name}</span>
+            <span>{category?.icon || '📊'}</span>
+            <span>{category?.name || metric.category}</span>
           </div>
           <h1 className="text-2xl font-bold text-foreground">
             {metric.title}
@@ -119,7 +145,7 @@ const MetricDetail = () => {
             Why It Matters
           </h2>
           <p className="text-foreground leading-relaxed">
-            {metric.whyItMatters}
+            {metric.why_it_matters}
           </p>
         </div>
 
