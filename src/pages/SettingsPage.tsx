@@ -1,7 +1,11 @@
+import { useNavigate } from 'react-router-dom';
 import AppShell from '@/components/AppShell';
 import Header from '@/components/Header';
-import { ChevronRight, Info, FileText, Share2, Mail, LogOut, ExternalLink } from 'lucide-react';
+import { ChevronRight, Info, FileText, Share2, Mail, LogOut, ExternalLink, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
+import { useState } from 'react';
 
 const settingsItems = [
   { icon: Info, label: 'About', description: 'Learn more about SML' },
@@ -11,6 +15,22 @@ const settingsItems = [
 ];
 
 const SettingsPage = () => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+    const { error } = await signOut();
+    if (error) {
+      toast.error('Failed to sign out');
+    } else {
+      toast.success('Signed out successfully');
+      navigate('/auth');
+    }
+    setIsSigningOut(false);
+  };
+
   return (
     <AppShell>
       <Header title="Settings" />
@@ -64,16 +84,30 @@ const SettingsPage = () => {
             <ExternalLink size={14} />
           </a>
           <div className="pt-2">
-            <Button 
-              variant="outline" 
-              className="rounded-full px-8"
-              onClick={() => {
-                // Sign out logic placeholder
-              }}
-            >
-              <LogOut size={18} />
-              Sign Out
-            </Button>
+            {user ? (
+              <Button 
+                variant="outline" 
+                className="rounded-full px-8"
+                onClick={handleSignOut}
+                disabled={isSigningOut}
+              >
+                {isSigningOut ? (
+                  <Loader2 size={18} className="animate-spin" />
+                ) : (
+                  <LogOut size={18} />
+                )}
+                {isSigningOut ? 'Signing out...' : 'Sign Out'}
+              </Button>
+            ) : (
+              <Button 
+                variant="outline" 
+                className="rounded-full px-8"
+                onClick={() => navigate('/auth')}
+              >
+                <LogOut size={18} />
+                Sign In
+              </Button>
+            )}
           </div>
         </div>
       </div>
