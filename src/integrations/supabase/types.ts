@@ -14,7 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      metrics: {
+        Row: {
+          category: string
+          created_at: string
+          definition: string
+          example: string
+          formula: string
+          id: string
+          slug: string
+          source: string
+          title: string
+          updated_at: string
+          visualization_data: Json
+          visualization_type: string
+          why_it_matters: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          definition: string
+          example: string
+          formula: string
+          id?: string
+          slug: string
+          source?: string
+          title: string
+          updated_at?: string
+          visualization_data?: Json
+          visualization_type?: string
+          why_it_matters: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          definition?: string
+          example?: string
+          formula?: string
+          id?: string
+          slug?: string
+          source?: string
+          title?: string
+          updated_at?: string
+          visualization_data?: Json
+          visualization_type?: string
+          why_it_matters?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
