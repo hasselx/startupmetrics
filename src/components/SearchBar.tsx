@@ -135,9 +135,13 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
                     }
                     
                     // No exact match - generate new metric
-                    const { metric, generated, error } = await generateMetric(query);
+                    const { metric, generated, error, requiresAuth } = await generateMetric(query);
                     if (error) {
                       toast.error(error);
+                      if (requiresAuth) {
+                        setShowSuggestions(false);
+                        navigate('/auth');
+                      }
                       return;
                     }
                     if (metric) {
