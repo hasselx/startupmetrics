@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import AppShell from '@/components/AppShell';
 import Header from '@/components/Header';
-import { ChevronRight, Info, FileText, Share2, Mail, LogOut, ExternalLink, Loader2, User } from 'lucide-react';
+import { ChevronRight, Info, FileText, Share2, Mail, LogOut, ExternalLink, Loader2, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -212,18 +212,84 @@ const SettingsPage = () => {
 
       {/* About Dialog */}
       <Dialog open={aboutOpen} onOpenChange={setAboutOpen}>
-        <DialogContent>
+        <DialogContent className="max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>About Startup Metrics Library</DialogTitle>
+            <DialogTitle>About Startup Metrics</DialogTitle>
             <DialogDescription asChild>
-              <div className="space-y-4 pt-4">
-                <p>
-                  Startup Metrics Library (SML) is your comprehensive guide to understanding and tracking the key metrics that drive startup success.
-                </p>
-                <p>
-                  Whether you're a founder, investor, or startup enthusiast, SML provides clear definitions, formulas, and real-world examples for essential business metrics.
-                </p>
-                <div className="pt-2">
+              <div className="space-y-6 pt-4 text-left">
+                {/* Our Purpose */}
+                <div>
+                  <h4 className="font-semibold text-foreground mb-2">Our Purpose</h4>
+                  <p>Startup Metrics Library (SML) is your comprehensive guide to understanding and tracking the key metrics that drive startup success.</p>
+                </div>
+
+                {/* Founder */}
+                <div>
+                  <h4 className="font-semibold text-foreground mb-2">Founder & Creator</h4>
+                  <p><span className="font-medium text-primary">Naveen Krishnan R</span> is the founder and creator of Startup Metrics.</p>
+                  <p className="mt-1 text-sm">Developer passionate about creating tools that simplify digital experiences.</p>
+                </div>
+
+                {/* Timeline */}
+                <div>
+                  <h4 className="font-semibold text-foreground mb-2">Timeline</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-3">
+                      <span className="w-16 font-medium text-primary">2024</span>
+                      <span>Startup Metrics Library launched</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="w-16 font-medium text-primary">2025</span>
+                      <span>Expanded with new categories & features</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Key Features */}
+                <div>
+                  <h4 className="font-semibold text-foreground mb-2">Key Features</h4>
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+                    <li>Comprehensive metric definitions & formulas</li>
+                    <li>Interactive visualizations</li>
+                    <li>Save & organize your favorite metrics</li>
+                    <li>Search across all categories</li>
+                  </ul>
+                </div>
+
+                {/* Contact */}
+                <div>
+                  <h4 className="font-semibold text-foreground mb-2">Get in Touch</h4>
+                  <p className="text-sm mb-3">We'd love to hear from you. Send us a message!</p>
+                  <div className="p-4 rounded-xl bg-secondary/50 border border-border">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Mail className="w-5 h-5 text-primary" />
+                      <span className="font-medium text-foreground">Email</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-3">Send us an email and we'll respond as soon as possible.</p>
+                    <div className="flex items-center gap-2">
+                      <a 
+                        href="https://mail.google.com/mail/u/0/?fs=1&to=ihasselx@gmail.com&tf=cm"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground py-2.5 px-4 rounded-lg font-medium text-center transition-colors"
+                      >
+                        Send Email
+                      </a>
+                      <button 
+                        onClick={() => {
+                          navigator.clipboard.writeText('ihasselx@gmail.com');
+                          toast.success('Email copied to clipboard!');
+                        }}
+                        className="p-2.5 rounded-lg bg-secondary hover:bg-secondary/80 border border-border transition-colors"
+                      >
+                        <Copy className="w-5 h-5" />
+                      </button>
+                    </div>
+                    <p className="text-sm text-primary mt-2">ihasselx@gmail.com</p>
+                  </div>
+                </div>
+
+                <div className="pt-2 text-center">
                   <p className="text-sm text-muted-foreground">Version 1.0.0</p>
                   <p className="text-sm text-muted-foreground">© 2024 Startup Metrics Library</p>
                 </div>
