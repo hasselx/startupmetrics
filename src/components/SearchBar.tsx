@@ -1,9 +1,10 @@
-import { Search, X } from 'lucide-react';
+import { Search, X, Sparkles, Loader2 } from 'lucide-react';
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSearchMetrics } from '@/hooks/useMetrics';
-import { categories } from '@/lib/metrics';
+import { useSearchMetrics, useInvalidateMetrics } from '@/hooks/useMetrics';
+import { categories, generateMetric } from '@/lib/metrics';
 import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
 
 interface SearchBarProps {
   autoFocus?: boolean;
@@ -17,8 +18,10 @@ export interface SearchBarRef {
 const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false, onSearch }, ref) => {
   const [query, setQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const invalidateMetrics = useInvalidateMetrics();
 
   const { data: searchResults, isLoading } = useSearchMetrics(query);
 
@@ -115,16 +118,47 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
               );
             })
           ) : (
-            <div className="p-4 text-center">
+          <div className="p-4 text-center">
               <p className="text-sm text-muted-foreground mb-2">No results found</p>
               <button
-                onClick={() => {
-                  setShowSuggestions(false);
-                  navigate(`/search?q=${encodeURIComponent(query)}`);
+                onClick={async () => {
+                  if (isGenerating || query.length < 2) return;
+                  setIsGenerating(true);
+                  try {
+                    const { metric, generated, error } = await generateMetric(query);
+                    if (error) {
+                      toast.error(error);
+                      return;
+                    }
+                    if (metric) {
+                      if (generated) {
+                        toast.success(`Generated: ${metric.title}`);
+                      }
+                      invalidateMetrics();
+                      setQuery('');
+                      setShowSuggestions(false);
+                      navigate(`/metric/${metric.slug}`);
+                    }
+                  } catch (err) {
+                    toast.error('Failed to generate metric');
+                  } finally {
+                    setIsGenerating(false);
+                  }
                 }}
-                className="text-sm text-primary font-medium"
+                disabled={isGenerating}
+                className="inline-flex items-center gap-2 text-sm text-primary font-medium disabled:opacity-50"
               >
-                Generate with AI →
+                {isGenerating ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={14} />
+                    Generate "{query}" with AI
+                  </>
+                )}
               </button>
             </div>
           )}
