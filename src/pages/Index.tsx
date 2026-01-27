@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useRef } from 'react';
 import { TrendingUp, Sparkles, ArrowRight } from 'lucide-react';
 import AppShell from '@/components/AppShell';
 import SearchBar from '@/components/SearchBar';
@@ -7,14 +8,18 @@ import MetricCard from '@/components/MetricCard';
 import { categories } from '@/lib/metrics';
 import { useMetrics, useCategoryCounts } from '@/hooks/useMetrics';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
 
 const Index = () => {
   const navigate = useNavigate();
+  const searchRef = useRef<{ focus: () => void }>(null);
   const { data: metrics, isLoading } = useMetrics();
   const { data: categoryCounts } = useCategoryCounts();
   const recentMetrics = (metrics || []).slice(0, 3);
   const totalMetrics = metrics?.length || 0;
+
+  const handleSearchCTAClick = () => {
+    searchRef.current?.focus();
+  };
 
   return (
     <AppShell>
@@ -39,7 +44,7 @@ const Index = () => {
 
         {/* Search */}
         <div className="mb-8 animate-fade-in" style={{ animationDelay: '50ms' }}>
-          <SearchBar />
+          <SearchBar ref={searchRef} />
         </div>
 
         {/* Stats Row */}
@@ -124,14 +129,13 @@ const Index = () => {
           )}
 
           {/* CTA Button */}
-          <Button 
-            onClick={() => navigate('/search')}
-            className="w-full mt-6"
-            variant="outline"
+          <button 
+            onClick={handleSearchCTAClick}
+            className="w-full mt-6 flex items-center justify-center gap-2 bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded-xl py-3 px-4 font-medium transition-colors tap-highlight-none"
           >
-            <Sparkles className="w-4 h-4 mr-2" />
+            <Sparkles className="w-4 h-4" />
             Search or generate any metric
-          </Button>
+          </button>
         </div>
       </div>
     </AppShell>
