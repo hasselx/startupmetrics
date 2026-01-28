@@ -43,32 +43,14 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
     (m) => m.title.toLowerCase() === query.toLowerCase()
   );
 
-  // Show generate option when we have results but no exact match
-  const showGenerateOption = query.length >= 2 && !isLoading && searchResults && searchResults.length > 0 && !hasExactMatch;
-
-  // Auto-generate when no results found at all
-  useEffect(() => {
-    const shouldAutoGenerate = 
-      query.length >= 2 && 
-      !isLoading && 
-      searchResults && 
-      searchResults.length === 0 && 
-      !isGenerating &&
-      query !== generatingQuery;
-
-    if (shouldAutoGenerate) {
-      handleAutoGenerate();
-    }
-  }, [query, isLoading, searchResults, isGenerating, generatingQuery]);
-
-  const handleAutoGenerate = async () => {
+  const handleGenerate = async () => {
     if (query.length < 2) return;
     
     setIsGenerating(true);
     setGeneratingQuery(query);
     
     try {
-      // First check for exact title match
+      // First check for exact title match in database
       const existingMetric = await findExactMetricByTitle(query);
       if (existingMetric) {
         setQuery('');
@@ -109,13 +91,28 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
     navigate(`/metric/${slug}`);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!query.trim() || query.length < 2) return;
+    
     if (onSearch) {
       onSearch(query);
-    } else if (searchResults && searchResults.length > 0) {
-      handleSelect(searchResults[0].slug);
+      return;
     }
+    
+    // If exact match exists in current results, navigate to it
+    if (hasExactMatch && searchResults) {
+      const exactMatch = searchResults.find(
+        (m) => m.title.toLowerCase() === query.toLowerCase()
+      );
+      if (exactMatch) {
+        handleSelect(exactMatch.slug);
+        return;
+      }
+    }
+    
+    // Otherwise, trigger generation (which also checks DB for exact match first)
+    await handleGenerate();
   };
 
   const showDropdown = showSuggestions && query.length >= 2;
@@ -173,31 +170,18 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
               </div>
             </div>
           ) : (
-            <>
-              {/* Generate option when no exact match */}
-              {showGenerateOption && (
-                <button
-                  onClick={handleAutoGenerate}
-                  className="w-full px-4 py-3 text-left hover:bg-primary/10 transition-colors flex items-center gap-3 tap-highlight-none border-b border-border bg-accent/30"
-                >
-                  <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                    <Sparkles size={16} className="text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm text-primary">Generate "{query}"</p>
-                    <p className="text-xs text-muted-foreground">Create new metric with AI</p>
-                  </div>
-                </button>
+          <>
+              {/* Hint to press Enter when no exact match */}
+              {query.length >= 2 && !hasExactMatch && (
+                <div className="px-4 py-2 text-xs text-muted-foreground bg-accent/30 border-b border-border flex items-center gap-2">
+                  <Sparkles size={12} className="text-primary" />
+                  <span>Press <kbd className="px-1.5 py-0.5 rounded bg-muted text-foreground font-medium">Enter</kbd> to generate "{query}"</span>
+                </div>
               )}
               
-              {/* Similar results */}
+              {/* Search results */}
               {searchResults && searchResults.length > 0 && (
                 <>
-                  {showGenerateOption && (
-                    <div className="px-4 py-2 text-xs text-muted-foreground bg-muted/30">
-                      Similar metrics
-                    </div>
-                  )}
                   {searchResults.slice(0, 6).map((metric) => {
                     const category = categories.find(c => c.id === metric.category);
                     return (
