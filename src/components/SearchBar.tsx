@@ -19,10 +19,10 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
   const [query, setQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatingQuery, setGeneratingQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const invalidateMetrics = useInvalidateMetrics();
+  const isSubmittingRef = useRef(false);
 
   const { data: searchResults, isLoading } = useSearchMetrics(query);
 
@@ -38,20 +38,32 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
     }
   }, [autoFocus]);
 
-  // Check if exact match exists in results
+  // Check if exact match exists in results (for UI hint only)
   const hasExactMatch = searchResults?.some(
-    (m) => m.title.toLowerCase() === query.toLowerCase()
+    (m) => m.title.toLowerCase() === query.trim().toLowerCase()
   );
 
-  const handleGenerate = async () => {
-    if (query.length < 2) return;
+  // Core search/generate logic - used by all input methods
+  const executeSearch = async (searchQuery: string) => {
+    const normalizedQuery = searchQuery.trim();
+    if (normalizedQuery.length < 2) return;
+    
+    // Prevent double submissions
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
+    
+    // If external handler provided, use it
+    if (onSearch) {
+      onSearch(normalizedQuery);
+      isSubmittingRef.current = false;
+      return;
+    }
     
     setIsGenerating(true);
-    setGeneratingQuery(query);
     
     try {
-      // First check for exact title match in database
-      const existingMetric = await findExactMetricByTitle(query);
+      // Step 1: Strict exact title match from database (case-insensitive)
+      const existingMetric = await findExactMetricByTitle(normalizedQuery);
       if (existingMetric) {
         setQuery('');
         setShowSuggestions(false);
@@ -59,8 +71,8 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
         return;
       }
       
-      // No exact match - generate new metric
-      const { metric, generated, error, requiresAuth } = await generateMetric(query);
+      // Step 2: No exact match - generate new metric with exact query string
+      const { metric, generated, error, requiresAuth } = await generateMetric(normalizedQuery);
       if (error) {
         toast.error(error);
         if (requiresAuth) {
@@ -82,6 +94,7 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
       toast.error('Failed to generate metric');
     } finally {
       setIsGenerating(false);
+      isSubmittingRef.current = false;
     }
   };
 
@@ -91,18 +104,25 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
     navigate(`/metric/${slug}`);
   };
 
+  // Form submit handler - works for desktop Enter and mobile Search button
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!query.trim() || query.length < 2) return;
-    
-    if (onSearch) {
-      onSearch(query);
-      return;
+    await executeSearch(query);
+  };
+
+  // Explicit keydown handler - fallback for mobile keyboards
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      // Read current input value directly for reliability
+      const currentValue = inputRef.current?.value || query;
+      await executeSearch(currentValue);
     }
-    
-    // Always use strict exact title match from DB (not fuzzy search results)
-    // handleGenerate checks for exact title match first, then generates if not found
-    await handleGenerate();
+  };
+
+  // Search icon tap handler
+  const handleSearchIconClick = async () => {
+    await executeSearch(query);
   };
 
   const showDropdown = showSuggestions && query.length >= 2;
@@ -111,10 +131,14 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
     <div className="relative">
       <form onSubmit={handleSubmit}>
         <div className="relative">
-          <Search 
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" 
-            size={20} 
-          />
+          <button
+            type="button"
+            onClick={handleSearchIconClick}
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Search"
+          >
+            <Search size={20} />
+          </button>
           <input
             ref={inputRef}
             type="text"
@@ -122,13 +146,14 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => setShowSuggestions(true)}
             onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+            onKeyDown={handleKeyDown}
             placeholder="Search metrics..."
             className="search-input pl-12 pr-10"
             enterKeyHint="search"
             autoComplete="off"
             autoCorrect="off"
             autoCapitalize="off"
-            spellCheck="false"
+            spellCheck={false}
           />
           {query && (
             <button
@@ -149,7 +174,7 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
               <div className="flex items-center gap-3 mb-3">
                 <Loader2 size={18} className="animate-spin text-primary" />
                 <span className="text-sm text-muted-foreground">
-                  {isGenerating ? `Generating "${query}"...` : 'Searching...'}
+                  {isGenerating ? `Generating "${query.trim()}"...` : 'Searching...'}
                 </span>
               </div>
               <div className="space-y-2">
@@ -165,16 +190,16 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
               </div>
             </div>
           ) : (
-          <>
+            <>
               {/* Hint to press Enter when no exact match */}
               {query.length >= 2 && !hasExactMatch && (
                 <div className="px-4 py-2 text-xs text-muted-foreground bg-accent/30 border-b border-border flex items-center gap-2">
                   <Sparkles size={12} className="text-primary" />
-                  <span>Press <kbd className="px-1.5 py-0.5 rounded bg-muted text-foreground font-medium">Enter</kbd> to generate "{query}"</span>
+                  <span>Press <kbd className="px-1.5 py-0.5 rounded bg-muted text-foreground font-medium">Enter</kbd> to generate "{query.trim()}"</span>
                 </div>
               )}
               
-              {/* Search results */}
+              {/* Search results - suggestions only */}
               {searchResults && searchResults.length > 0 && (
                 <>
                   {searchResults.slice(0, 6).map((metric) => {
