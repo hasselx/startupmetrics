@@ -46,10 +46,20 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
   // Core search/generate logic - used by all input methods
   const executeSearch = async (searchQuery: string) => {
     const normalizedQuery = searchQuery.trim();
-    if (normalizedQuery.length < 2) return;
+    
+    // Validation
+    if (normalizedQuery.length < 2) {
+      console.log('[SearchBar] Query too short:', normalizedQuery);
+      return;
+    }
     
     // Prevent double submissions
-    if (isSubmittingRef.current) return;
+    if (isSubmittingRef.current) {
+      console.log('[SearchBar] Already submitting, skipping');
+      return;
+    }
+    
+    console.log('[SearchBar] Executing search for:', normalizedQuery);
     isSubmittingRef.current = true;
     
     // If external handler provided, use it
@@ -60,11 +70,15 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
     }
     
     setIsGenerating(true);
+    setShowSuggestions(true); // Keep dropdown open to show loading state
     
     try {
       // Step 1: Strict exact title match from database (case-insensitive)
+      console.log('[SearchBar] Checking for exact match in DB...');
       const existingMetric = await findExactMetricByTitle(normalizedQuery);
+      
       if (existingMetric) {
+        console.log('[SearchBar] Found exact match:', existingMetric.slug);
         setQuery('');
         setShowSuggestions(false);
         navigate(`/metric/${existingMetric.slug}`);
@@ -72,8 +86,11 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
       }
       
       // Step 2: No exact match - generate new metric with exact query string
+      console.log('[SearchBar] No exact match, generating metric...');
       const { metric, generated, error, requiresAuth } = await generateMetric(normalizedQuery);
+      
       if (error) {
+        console.error('[SearchBar] Generation error:', error);
         toast.error(error);
         if (requiresAuth) {
           setShowSuggestions(false);
@@ -81,7 +98,9 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
         }
         return;
       }
+      
       if (metric) {
+        console.log('[SearchBar] Generated metric:', metric.slug);
         if (generated) {
           toast.success(`Generated: ${metric.title}`);
         }
@@ -91,6 +110,7 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
         navigate(`/metric/${metric.slug}`);
       }
     } catch (err) {
+      console.error('[SearchBar] Exception:', err);
       toast.error('Failed to generate metric');
     } finally {
       setIsGenerating(false);
@@ -105,43 +125,49 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
   };
 
   // Form submit handler - works for desktop Enter and mobile Search button
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    await executeSearch(query);
+    e.stopPropagation();
+    console.log('[SearchBar] Form submitted with query:', query);
+    executeSearch(query);
   };
 
   // Explicit keydown handler - fallback for mobile keyboards
-  const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
+      e.stopPropagation();
       // Read current input value directly for reliability
       const currentValue = inputRef.current?.value || query;
-      await executeSearch(currentValue);
+      console.log('[SearchBar] Enter key pressed with value:', currentValue);
+      executeSearch(currentValue);
     }
   };
 
   // Search icon tap handler
-  const handleSearchIconClick = async () => {
-    await executeSearch(query);
+  const handleSearchIconClick = () => {
+    console.log('[SearchBar] Search icon clicked with query:', query);
+    executeSearch(query);
   };
 
   const showDropdown = showSuggestions && query.length >= 2;
 
   return (
     <div className="relative">
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} action="#">
         <div className="relative">
           <button
             type="button"
             onClick={handleSearchIconClick}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors z-10"
             aria-label="Search"
           >
             <Search size={20} />
           </button>
           <input
             ref={inputRef}
-            type="text"
+            type="search"
+            inputMode="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => setShowSuggestions(true)}
@@ -159,11 +185,13 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
             <button
               type="button"
               onClick={() => setQuery('')}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors z-10"
             >
               <X size={18} />
             </button>
           )}
+          {/* Hidden submit button for form submission */}
+          <button type="submit" className="sr-only" aria-hidden="true">Search</button>
         </div>
       </form>
 
