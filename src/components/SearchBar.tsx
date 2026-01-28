@@ -100,18 +100,8 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
       return;
     }
     
-    // If exact match exists in current results, navigate to it
-    if (hasExactMatch && searchResults) {
-      const exactMatch = searchResults.find(
-        (m) => m.title.toLowerCase() === query.toLowerCase()
-      );
-      if (exactMatch) {
-        handleSelect(exactMatch.slug);
-        return;
-      }
-    }
-    
-    // Otherwise, trigger generation (which also checks DB for exact match first)
+    // Always use strict exact title match from DB (not fuzzy search results)
+    // handleGenerate checks for exact title match first, then generates if not found
     await handleGenerate();
   };
 
@@ -134,6 +124,11 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
             onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
             placeholder="Search metrics..."
             className="search-input pl-12 pr-10"
+            enterKeyHint="search"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck="false"
           />
           {query && (
             <button
