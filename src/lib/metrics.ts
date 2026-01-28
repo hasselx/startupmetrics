@@ -27,6 +27,8 @@ export const categories = [
   { id: 'sales', name: 'Sales', icon: '🎯', color: 'hsl(150, 80%, 40%)' },
   { id: 'unit-economics', name: 'Unit Economics', icon: '⚖️', color: 'hsl(280, 70%, 50%)' },
   { id: 'saas', name: 'SaaS', icon: '☁️', color: 'hsl(220, 80%, 50%)' },
+  { id: 'operational', name: 'Operational', icon: '⚙️', color: 'hsl(45, 80%, 50%)' },
+  { id: 'valuation', name: 'Valuation', icon: '💎', color: 'hsl(300, 70%, 50%)' },
 ];
 
 // Fetch all metrics from database
