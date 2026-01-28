@@ -19,43 +19,16 @@ export interface Metric {
 }
 
 export const categories = [
-  // Core Financial & Economics
-  { id: 'financial-performance', name: 'Financial Performance', icon: '💰', color: 'hsl(168, 80%, 32%)' },
-  { id: 'financial-health-risk', name: 'Financial Health & Risk', icon: '🏦', color: 'hsl(175, 70%, 35%)' },
+  { id: 'financial', name: 'Financial', icon: '💰', color: 'hsl(168, 80%, 32%)' },
+  { id: 'growth', name: 'Growth', icon: '📈', color: 'hsl(262, 80%, 50%)' },
+  { id: 'retention', name: 'Retention', icon: '🔄', color: 'hsl(340, 80%, 50%)' },
+  { id: 'product', name: 'Product', icon: '📦', color: 'hsl(200, 80%, 50%)' },
+  { id: 'marketing', name: 'Marketing', icon: '📣', color: 'hsl(30, 80%, 50%)' },
+  { id: 'sales', name: 'Sales', icon: '🎯', color: 'hsl(150, 80%, 40%)' },
   { id: 'unit-economics', name: 'Unit Economics', icon: '⚖️', color: 'hsl(280, 70%, 50%)' },
-  { id: 'pricing-monetization', name: 'Pricing & Monetization', icon: '💵', color: 'hsl(140, 70%, 40%)' },
-  { id: 'valuation-investor', name: 'Valuation & Investor', icon: '💎', color: 'hsl(300, 70%, 50%)' },
-  
-  // Growth & Acquisition
-  { id: 'growth-acquisition', name: 'Growth & Acquisition', icon: '📈', color: 'hsl(262, 80%, 50%)' },
-  { id: 'marketing-funnel', name: 'Marketing & Funnel', icon: '📣', color: 'hsl(30, 80%, 50%)' },
-  { id: 'sales-efficiency', name: 'Sales Efficiency', icon: '🎯', color: 'hsl(150, 80%, 40%)' },
-  
-  // Retention & Engagement
-  { id: 'retention-engagement', name: 'Retention & Engagement', icon: '🔄', color: 'hsl(340, 80%, 50%)' },
-  { id: 'customer-success-support', name: 'Customer Success & Support', icon: '🤝', color: 'hsl(190, 70%, 45%)' },
-  
-  // Product & Technology
-  { id: 'product-usage', name: 'Product & Usage', icon: '📦', color: 'hsl(200, 80%, 50%)' },
-  { id: 'technology-engineering', name: 'Technology & Engineering', icon: '🔧', color: 'hsl(210, 75%, 45%)' },
-  { id: 'data-analytics', name: 'Data & Analytics', icon: '📊', color: 'hsl(230, 70%, 55%)' },
-  
-  // Business Models
-  { id: 'saas-specific', name: 'SaaS-Specific', icon: '☁️', color: 'hsl(220, 80%, 50%)' },
-  { id: 'marketplace-platform', name: 'Marketplace & Platform', icon: '🏪', color: 'hsl(25, 75%, 50%)' },
-  
-  // Operations & Organization
-  { id: 'operational-efficiency', name: 'Operational Efficiency', icon: '⚙️', color: 'hsl(45, 80%, 50%)' },
-  { id: 'people-organizational', name: 'People & Organizational', icon: '👥', color: 'hsl(320, 65%, 50%)' },
-  
-  // Governance & Compliance
-  { id: 'compliance-governance', name: 'Compliance & Governance', icon: '📋', color: 'hsl(180, 60%, 40%)' },
-  { id: 'fraud-trust', name: 'Fraud & Trust', icon: '🛡️', color: 'hsl(0, 70%, 50%)' },
-  
-  // Strategic
-  { id: 'partnerships', name: 'Partnerships', icon: '🤲', color: 'hsl(270, 60%, 55%)' },
-  { id: 'brand-reputation', name: 'Brand & Reputation', icon: '⭐', color: 'hsl(50, 85%, 50%)' },
-  { id: 'impact-esg', name: 'Impact & ESG', icon: '🌱', color: 'hsl(120, 70%, 40%)' },
+  { id: 'saas', name: 'SaaS', icon: '☁️', color: 'hsl(220, 80%, 50%)' },
+  { id: 'operational', name: 'Operational', icon: '⚙️', color: 'hsl(45, 80%, 50%)' },
+  { id: 'valuation', name: 'Valuation', icon: '💎', color: 'hsl(300, 70%, 50%)' },
 ];
 
 // Fetch all metrics from database

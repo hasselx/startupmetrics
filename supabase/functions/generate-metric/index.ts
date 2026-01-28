@@ -7,36 +7,16 @@ const corsHeaders = {
 };
 
 const CATEGORIES = [
-  // Core Financial & Economics
-  "financial-performance",
-  "financial-health-risk",
+  "financial",
+  "growth",
+  "retention",
+  "product",
+  "marketing",
+  "sales",
   "unit-economics",
-  "pricing-monetization",
-  "valuation-investor",
-  // Growth & Acquisition
-  "growth-acquisition",
-  "marketing-funnel",
-  "sales-efficiency",
-  // Retention & Engagement
-  "retention-engagement",
-  "customer-success-support",
-  // Product & Technology
-  "product-usage",
-  "technology-engineering",
-  "data-analytics",
-  // Business Models
-  "saas-specific",
-  "marketplace-platform",
-  // Operations & Organization
-  "operational-efficiency",
-  "people-organizational",
-  // Governance & Compliance
-  "compliance-governance",
-  "fraud-trust",
-  // Strategic
-  "partnerships",
-  "brand-reputation",
-  "impact-esg",
+  "saas",
+  "operational",
+  "valuation",
 ];
 
 serve(async (req) => {
