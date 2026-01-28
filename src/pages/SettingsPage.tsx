@@ -1,13 +1,14 @@
 import { useNavigate } from 'react-router-dom';
 import AppShell from '@/components/AppShell';
 import Header from '@/components/Header';
-import { ChevronRight, Info, FileText, Share2, Mail, LogOut, ExternalLink, Loader2, Copy } from 'lucide-react';
+import { ChevronRight, Info, FileText, Share2, Mail, LogOut, ExternalLink, Loader2, Copy, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { categories } from '@/lib/metrics';
 import {
   Dialog,
   DialogContent,
@@ -25,6 +26,7 @@ const SettingsPage = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
@@ -87,9 +89,64 @@ const SettingsPage = () => {
     setContactOpen(true);
   };
 
+  const handleExportCSV = async () => {
+    setIsExporting(true);
+    try {
+      // Fetch all metrics sorted alphabetically
+      const { data, error } = await supabase
+        .from('metrics')
+        .select('title, category')
+        .order('title', { ascending: true });
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        toast.error('No metrics to export');
+        return;
+      }
+
+      // Map category IDs to names
+      const getCategoryName = (categoryId: string) => {
+        const cat = categories.find(c => c.id === categoryId);
+        return cat?.name || categoryId;
+      };
+
+      // Create CSV content
+      const headers = ['Title', 'Category'];
+      const rows = data.map(metric => [
+        `"${metric.title.replace(/"/g, '""')}"`,
+        `"${getCategoryName(metric.category)}"`
+      ]);
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.join(','))
+      ].join('\n');
+
+      // Create and download file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'startup-metrics-list.csv';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success(`Exported ${data.length} metrics`);
+    } catch (err) {
+      console.error('Export error:', err);
+      toast.error('Failed to export metrics');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const settingsItems = [
     { icon: Info, label: 'About', description: 'Learn more about SML', action: () => setAboutOpen(true) },
     { icon: FileText, label: 'Terms of Service', description: 'Read our terms', action: () => setTermsOpen(true) },
+    { icon: Download, label: 'Export CSV', description: 'Download all metrics', action: handleExportCSV, loading: isExporting },
     { icon: Share2, label: 'Share App', description: 'Share with friends', action: handleShare },
     { icon: Mail, label: 'Contact', description: 'Get in touch', action: handleContact },
   ];
@@ -148,16 +205,22 @@ const SettingsPage = () => {
         <div className="space-y-2">
           {settingsItems.map((item, index) => {
             const Icon = item.icon;
+            const isLoading = 'loading' in item && item.loading;
             return (
               <button
                 key={item.label}
                 onClick={item.action}
-                className="metric-card w-full text-left tap-highlight-none group animate-slide-up"
+                disabled={isLoading}
+                className="metric-card w-full text-left tap-highlight-none group animate-slide-up disabled:opacity-70"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
-                    <Icon size={20} className="text-muted-foreground" />
+                    {isLoading ? (
+                      <Loader2 size={20} className="text-muted-foreground animate-spin" />
+                    ) : (
+                      <Icon size={20} className="text-muted-foreground" />
+                    )}
                   </div>
                   <div className="flex-1">
                     <h3 className="font-medium text-foreground">{item.label}</h3>
