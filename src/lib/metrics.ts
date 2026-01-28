@@ -97,18 +97,23 @@ export async function searchMetrics(query: string): Promise<Metric[]> {
 
 // Check for exact title match
 export async function findExactMetricByTitle(title: string): Promise<Metric | null> {
+  const normalized = title.trim();
+  if (!normalized) return null;
+
+  // Strict case-insensitive equality match, but avoid `.single()`/`.maybeSingle()` ambiguity
+  // if duplicates exist by limiting to 1 row.
   const { data, error } = await supabase
     .from('metrics')
     .select('*')
-    .ilike('title', title)
-    .maybeSingle();
+    .ilike('title', normalized)
+    .limit(1);
 
   if (error) {
     console.error('Error finding exact metric:', error);
     return null;
   }
 
-  return data ? mapDbMetric(data) : null;
+  return data && data.length > 0 ? mapDbMetric(data[0]) : null;
 }
 
 // Generate a new metric using AI
