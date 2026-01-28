@@ -108,17 +108,13 @@ serve(async (req) => {
             role: "system",
             content: `You are a startup metrics expert. Generate comprehensive, accurate metric definitions for startup and SaaS businesses. Always provide practical examples with real numbers.
 
-IMPORTANT RULES:
-1. The metric title MUST be based on the user's query - use their exact term or a closely related official metric name
-2. If the query is a common metric name (e.g., "MRR", "CAC", "LTV"), use the official full name
-3. If the query is a concept (e.g., "benchmark", "efficiency"), create a metric specifically about that concept
-4. NEVER generate an unrelated metric - the title must directly relate to the user's query`,
+CRITICAL RULE: The metric title MUST be EXACTLY the user's query. Do NOT expand, modify, or "improve" the title. If user asks for "Pivot", the title must be exactly "Pivot" - NOT "Pivot Rate", NOT "Pivot Success Ratio", just "Pivot".`,
           },
           {
             role: "user",
-            content: `Generate a complete startup metric entry for: "${query}"
+            content: `Generate a complete startup metric entry with the title exactly: "${query}"
 
-The metric title MUST contain or directly relate to "${query}". Do not generate a generic or unrelated metric.`,
+IMPORTANT: The title field MUST be exactly "${query}" - do not change it, expand it, or add words to it.`,
           },
         ],
         tools: [
@@ -132,7 +128,7 @@ The metric title MUST contain or directly relate to "${query}". Do not generate 
                 properties: {
                   title: {
                     type: "string",
-                    description: "The official name of the metric (e.g., 'Monthly Recurring Revenue')",
+                    description: "MUST be exactly the user's query - do not modify or expand it",
                   },
                   category: {
                     type: "string",
@@ -232,12 +228,16 @@ The metric title MUST contain or directly relate to "${query}". Do not generate 
       }
     }
 
-    // Generate slug from AI-generated title (not user query) for consistency
-    const titleSlug = metricData.title.toLowerCase().trim().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+    // CRITICAL: Override AI title with exact user query to enforce strict matching
+    const exactTitle = query.trim();
+    console.log(`Enforcing exact title: "${exactTitle}" (AI suggested: "${metricData.title}")`);
+    
+    // Generate slug from exact user query
+    const titleSlug = exactTitle.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
 
     // Create the metric object
     const newMetric = {
-      title: metricData.title,
+      title: exactTitle, // Use exact user query, NOT AI-generated title
       slug: titleSlug,
       category: metricData.category || "financial",
       definition: metricData.definition,
