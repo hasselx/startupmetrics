@@ -14,10 +14,12 @@ const CategoryPieChart = ({ counts }: CategoryPieChartProps) => {
       name: category.name,
       value: counts[category.id] || 0,
       percentage: totalMetrics > 0 ? ((counts[category.id] || 0) / totalMetrics * 100).toFixed(1) : '0',
+      percentageNum: totalMetrics > 0 ? (counts[category.id] || 0) / totalMetrics * 100 : 0,
       color: category.color,
       icon: category.icon,
     }))
-    .filter(item => item.value > 0);
+    .filter(item => item.value > 0)
+    .sort((a, b) => b.percentageNum - a.percentageNum);
 
   if (data.length === 0) {
     return (
@@ -109,38 +111,28 @@ const CategoryPieChart = ({ counts }: CategoryPieChartProps) => {
         </motion.div>
       </motion.div>
 
-      {/* Legend with percentages */}
+      {/* Legend with percentages - all categories sorted by contribution */}
       <motion.div 
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6, duration: 0.3 }}
         className="flex flex-wrap gap-2 mt-3 justify-center"
       >
-        {data.slice(0, 5).map((item, index) => (
+        {data.map((item, index) => (
           <motion.div 
             key={index} 
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.7 + index * 0.05 }}
+            transition={{ delay: 0.7 + index * 0.03 }}
             className="flex items-center gap-1.5 text-xs"
           >
             <div 
-              className="w-2.5 h-2.5 rounded-full" 
+              className="w-2.5 h-2.5 rounded-full flex-shrink-0" 
               style={{ backgroundColor: item.color }}
             />
             <span className="text-muted-foreground">{item.name} ({item.percentage}%)</span>
           </motion.div>
         ))}
-        {data.length > 5 && (
-          <motion.span 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.9 }}
-            className="text-xs text-muted-foreground"
-          >
-            +{data.length - 5} more
-          </motion.span>
-        )}
       </motion.div>
     </motion.div>
   );
