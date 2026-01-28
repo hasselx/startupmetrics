@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import AppShell from '@/components/AppShell';
 import Header from '@/components/Header';
-import { ChevronRight, Info, FileText, Share2, Mail, LogOut, ExternalLink, Loader2, Copy, Download } from 'lucide-react';
+import { ChevronRight, Info, FileText, Share2, Mail, LogOut, ExternalLink, Loader2, Copy, Download, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -27,6 +27,7 @@ const SettingsPage = () => {
   const navigate = useNavigate();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isRecategorizing, setIsRecategorizing] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
@@ -143,10 +144,43 @@ const SettingsPage = () => {
     }
   };
 
+  const handleRecategorize = async () => {
+    setIsRecategorizing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('recategorize-metrics');
+      
+      if (error) throw error;
+      
+      if (data.error) {
+        toast.error(data.error);
+        return;
+      }
+
+      const { updated, legacyMapped, aiClassified, failed } = data;
+      
+      if (updated === 0 && failed.length === 0) {
+        toast.success('All metrics already have valid categories!');
+      } else {
+        toast.success(`Recategorized ${updated} metrics (${legacyMapped} mapped, ${aiClassified} AI-classified)`);
+        
+        if (failed.length > 0) {
+          console.log('Failed to categorize:', failed);
+          toast.warning(`${failed.length} metrics need manual review`);
+        }
+      }
+    } catch (err) {
+      console.error('Recategorize error:', err);
+      toast.error('Failed to recategorize metrics');
+    } finally {
+      setIsRecategorizing(false);
+    }
+  };
+
   const settingsItems = [
     { icon: Info, label: 'About', description: 'Learn more about SML', action: () => setAboutOpen(true) },
     { icon: FileText, label: 'Terms of Service', description: 'Read our terms', action: () => setTermsOpen(true) },
     { icon: Download, label: 'Export CSV', description: 'Download all metrics', action: handleExportCSV, loading: isExporting },
+    { icon: RefreshCw, label: 'Fix Categories', description: 'Reassign metric categories', action: handleRecategorize, loading: isRecategorizing },
     { icon: Share2, label: 'Share App', description: 'Share with friends', action: handleShare },
     { icon: Mail, label: 'Contact', description: 'Get in touch', action: handleContact },
   ];
