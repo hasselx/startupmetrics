@@ -62,12 +62,9 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ autoFocus = false,
     console.log('[SearchBar] Executing search for:', normalizedQuery);
     isSubmittingRef.current = true;
     
-    // If external handler provided, use it
-    if (onSearch) {
-      onSearch(normalizedQuery);
-      isSubmittingRef.current = false;
-      return;
-    }
+    // Notify parent of submitted query (SearchPage uses this), but do NOT short-circuit.
+    // We still must run the exact-match → generate flow here.
+    onSearch?.(normalizedQuery);
     
     setIsGenerating(true);
     setShowSuggestions(true); // Keep dropdown open to show loading state
